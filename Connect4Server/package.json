@@ -1,0 +1,20 @@
+{
+  "name": "connect4server",
+  "version": "1.0.0",
+  "description": "server for our connect 4 game",
+  "main": "app.js",
+  "scripts": {
+    "build": "npx tsc",
+    "test": "./test_prog.sh"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "aws-iot-device-sdk-v2": "^1.13.1",
+    "aws-sdk": "^2.1388.0",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.4"
+  }
+}

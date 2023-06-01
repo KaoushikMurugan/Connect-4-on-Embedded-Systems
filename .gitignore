@@ -1,0 +1,4 @@
+*.shadowinfo.json
+*.pem*
+aws-ssh-commands.txt
+.DS_Store
