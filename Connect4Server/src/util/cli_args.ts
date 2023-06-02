@@ -53,19 +53,21 @@ function add_universal_arguments(yargs: any) {
     yargs
         .option('verbosity', {
             alias: 'v',
-            description: 'The amount of detail in the logging output of the sample (optional).',
+            description:
+                'The amount of detail in the logging output of the sample (optional).',
             type: 'string',
             default: 'none',
             choices: ['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'none']
         })
         .option('is_ci', {
-            description: 'Launches the sample in CI mode (optional, set as anything to enable)',
+            description:
+                'Launches the sample in CI mode (optional, set as anything to enable)',
             type: 'boolean',
             default: false
         })
         .help()
         .alias('help', 'h')
-        .showHelpOnFail(false)
+        .showHelpOnFail(false);
 }
 
 /*
@@ -81,7 +83,8 @@ function add_common_mqtt_arguments(yargs: any) {
         })
         .option('ca_file', {
             alias: 'r',
-            description: '<path>: File path to a Root CA certificate file in PEM format (optional, system trust store used by default).',
+            description:
+                '<path>: File path to a Root CA certificate file in PEM format (optional, system trust store used by default).',
             type: 'string',
             required: false
         })
@@ -90,26 +93,28 @@ function add_common_mqtt_arguments(yargs: any) {
             description: 'Client ID for MQTT connection.',
             type: 'string',
             required: false
-        })
+        });
 }
 
 /*
  * Common MQTT arguments needed for making a connection
  */
-function add_direct_tls_connect_arguments(yargs: any, is_required=false) {
+function add_direct_tls_connect_arguments(yargs: any, is_required = false) {
     yargs
         .option('cert', {
             alias: 'c',
-            description: '<path>: File path to a PEM encoded certificate to use with mTLS.',
+            description:
+                '<path>: File path to a PEM encoded certificate to use with mTLS.',
             type: 'string',
             required: is_required
         })
         .option('key', {
             alias: 'k',
-            description: '<path>: File path to a PEM encoded private key that matches cert.',
+            description:
+                '<path>: File path to a PEM encoded private key that matches cert.',
             type: 'string',
             required: is_required
-        })
+        });
 }
 
 /*
@@ -119,33 +124,35 @@ function add_proxy_arguments(yargs: any) {
     yargs
         .option('proxy_host', {
             alias: 'H',
-            description: 'Hostname of the proxy to connect to (optional, required if --proxy_port is set).',
+            description:
+                'Hostname of the proxy to connect to (optional, required if --proxy_port is set).',
             type: 'string',
             required: false
         })
         .option('proxy_port', {
             alias: 'P',
             default: 8080,
-            description: 'Port of the proxy to connect to (optional, required if --proxy_host is set).',
+            description:
+                'Port of the proxy to connect to (optional, required if --proxy_host is set).',
             type: 'number',
             required: false
-        })
+        });
 }
 
 /*
  * Common Websocket arguments needed for making a connection
  */
-function add_common_websocket_arguments(yargs: any, is_required=false) {
-    yargs
-        .option('signing_region', {
-            // @ts-ignore
-            alias: ('s', 'region'),
-            description: 'If you specify --signing_region then you will use websockets to connect. This' +
-                'is the region that will be used for computing the Sigv4 signature.  This region must match the' +
-                'AWS region in your endpoint.',
-            type: 'string',
-            required: is_required
-        })
+function add_common_websocket_arguments(yargs: any, is_required = false) {
+    yargs.option('signing_region', {
+        // @ts-ignore
+        alias: ('s', 'region'),
+        description:
+            'If you specify --signing_region then you will use websockets to connect. This' +
+            'is the region that will be used for computing the Sigv4 signature.  This region must match the' +
+            'AWS region in your endpoint.',
+        type: 'string',
+        required: is_required
+    });
 }
 
 /*
@@ -162,7 +169,8 @@ function add_topic_message_arguments(yargs: any) {
         .option('count', {
             alias: 'n',
             default: 10,
-            description: 'Number of messages to publish/receive before exiting. ' +
+            description:
+                'Number of messages to publish/receive before exiting. ' +
                 'Specify 0 to run forever (optional).',
             type: 'number',
             required: false
@@ -172,7 +180,7 @@ function add_topic_message_arguments(yargs: any) {
             description: 'Message to publish (optional).',
             type: 'string',
             default: 'Hello world!'
-        })
+        });
 }
 
 /*
@@ -193,9 +201,9 @@ function add_shadow_arguments(yargs: any) {
             default: 'name'
         })
         .option('mqtt5', {
-        description: 'Use an MQTT5 client rather than a MQTT311 client',
-        type: 'boolean',
-        default: false
+            description: 'Use an MQTT5 client rather than a MQTT311 client',
+            type: 'boolean',
+            default: false
         });
 }
 
@@ -205,25 +213,29 @@ function add_shadow_arguments(yargs: any) {
 function add_custom_authorizer_arguments(yargs: any) {
     yargs
         .option('custom_auth_username', {
-            description: 'The name to send when connecting through the custom authorizer (optional)',
+            description:
+                'The name to send when connecting through the custom authorizer (optional)',
             type: 'string',
             default: ''
         })
         .option('custom_auth_authorizer_name', {
-            description: 'The name of the custom authorizer to connect to (optional but required for everything but custom domains)',
+            description:
+                'The name of the custom authorizer to connect to (optional but required for everything but custom domains)',
             type: 'string',
             default: ''
         })
         .option('custom_auth_authorizer_signature', {
-            description: 'The signature to send when connecting through a custom authorizer (optional)',
+            description:
+                'The signature to send when connecting through a custom authorizer (optional)',
             type: 'string',
             default: ''
         })
         .option('custom_auth_password', {
-            description: 'The password to send when connecting through a custom authorizer (optional)',
+            description:
+                'The password to send when connecting through a custom authorizer (optional)',
             type: 'string',
             default: ''
-        })
+        });
 }
 
 /*
@@ -239,24 +251,24 @@ function add_jobs_arguments(yargs: any) {
         })
         .option('job_time', {
             alias: 't',
-            description: 'Emulate working on a job by sleeping this many seconds (optional, default=5)',
+            description:
+                'Emulate working on a job by sleeping this many seconds (optional, default=5)',
             type: 'number',
             default: 5
-        })
+        });
 }
 
 /*
  * Arguments specific to the Cognito samples.
  */
 function add_cognito_arguments(yargs: any) {
-    yargs
-        .option('cognito_identity', {
-            alias: 'i',
-            description: 'The Cognito identity ID to use to connect via Cognito',
-            type: 'string',
-            default: '',
-            required: true
-        })
+    yargs.option('cognito_identity', {
+        alias: 'i',
+        description: 'The Cognito identity ID to use to connect via Cognito',
+        type: 'string',
+        default: '',
+        required: true
+    });
 }
 
 function add_x509_arguments(yargs: any) {
@@ -280,13 +292,15 @@ function add_x509_arguments(yargs: any) {
             required: true
         })
         .option('x509_cert', {
-            description: 'Path to the IoT thing certificate used in fetching x509 credentials',
+            description:
+                'Path to the IoT thing certificate used in fetching x509 credentials',
             type: 'string',
             default: '',
             required: true
         })
         .option('x509_key', {
-            description: 'Path to the IoT thing private key used in fetching x509 credentials',
+            description:
+                'Path to the IoT thing private key used in fetching x509 credentials',
             type: 'string',
             default: '',
             required: true
@@ -296,7 +310,7 @@ function add_x509_arguments(yargs: any) {
             type: 'string',
             default: '',
             required: false
-        })
+        });
 }
 
 /*
@@ -331,7 +345,9 @@ function build_websocket_mqtt_connection_from_args(argv: any) {
     });
 
     if (argv.proxy_host) {
-        config_builder.with_http_proxy_options(new http.HttpProxyOptions(argv.proxy_host, argv.proxy_port));
+        config_builder.with_http_proxy_options(
+            new http.HttpProxyOptions(argv.proxy_host, argv.proxy_port)
+        );
     }
 
     if (argv.ca_file != null) {
@@ -339,7 +355,9 @@ function build_websocket_mqtt_connection_from_args(argv: any) {
     }
 
     config_builder.with_clean_session(false);
-    config_builder.with_client_id(argv.client_id || "test-" + Math.floor(Math.random() * 100000000));
+    config_builder.with_client_id(
+        argv.client_id || 'test-' + Math.floor(Math.random() * 100000000)
+    );
     config_builder.with_endpoint(argv.endpoint);
     const config = config_builder.build();
 
@@ -351,10 +369,15 @@ function build_websocket_mqtt_connection_from_args(argv: any) {
  * Build a direct mqtt connection using mtls, (http) proxy optional
  */
 function build_direct_mqtt_connection_from_args(argv: any) {
-    let config_builder = iot.AwsIotMqttConnectionConfigBuilder.new_mtls_builder_from_path(argv.cert, argv.key);
+    let config_builder = iot.AwsIotMqttConnectionConfigBuilder.new_mtls_builder_from_path(
+        argv.cert,
+        argv.key
+    );
 
     if (argv.proxy_host) {
-        config_builder.with_http_proxy_options(new http.HttpProxyOptions(argv.proxy_host, argv.proxy_port));
+        config_builder.with_http_proxy_options(
+            new http.HttpProxyOptions(argv.proxy_host, argv.proxy_port)
+        );
     }
 
     if (argv.ca_file != null) {
@@ -362,7 +385,9 @@ function build_direct_mqtt_connection_from_args(argv: any) {
     }
 
     config_builder.with_clean_session(false);
-    config_builder.with_client_id(argv.client_id || "test-" + Math.floor(Math.random() * 100000000));
+    config_builder.with_client_id(
+        argv.client_id || 'test-' + Math.floor(Math.random() * 100000000)
+    );
     config_builder.with_endpoint(argv.endpoint);
     const config = config_builder.build();
 
@@ -385,13 +410,19 @@ function build_connection_from_cli_args(argv: any) {
 }
 
 function build_websocket_mqtt5_client_from_args(argv: any) {
-    let config_builder = iot.AwsIotMqtt5ClientConfigBuilder.newWebsocketMqttBuilderWithSigv4Auth(argv.endpoint, {
-        region: argv.signing_region,
-        credentials_provider: auth.AwsCredentialsProvider.newDefault()
-    });
+    let config_builder =
+        iot.AwsIotMqtt5ClientConfigBuilder.newWebsocketMqttBuilderWithSigv4Auth(
+            argv.endpoint,
+            {
+                region: argv.signing_region,
+                credentials_provider: auth.AwsCredentialsProvider.newDefault()
+            }
+        );
 
     if (argv.proxy_host) {
-        config_builder.withHttpProxyOptions(new http.HttpProxyOptions(argv.proxy_host, argv.proxy_port));
+        config_builder.withHttpProxyOptions(
+            new http.HttpProxyOptions(argv.proxy_host, argv.proxy_port)
+        );
     }
 
     if (argv.ca_file != null) {
@@ -404,10 +435,17 @@ function build_websocket_mqtt5_client_from_args(argv: any) {
 }
 
 function build_direct_mqtt5_client_from_args(argv: any) {
-    let config_builder = iot.AwsIotMqtt5ClientConfigBuilder.newDirectMqttBuilderWithMtlsFromPath(argv.endpoint, argv.cert, argv.key);
+    let config_builder =
+        iot.AwsIotMqtt5ClientConfigBuilder.newDirectMqttBuilderWithMtlsFromPath(
+            argv.endpoint,
+            argv.cert,
+            argv.key
+        );
 
     if (argv.proxy_host) {
-        config_builder.withHttpProxyOptions(new http.HttpProxyOptions(argv.proxy_host, argv.proxy_port));
+        config_builder.withHttpProxyOptions(
+            new http.HttpProxyOptions(argv.proxy_host, argv.proxy_port)
+        );
     }
 
     if (argv.ca_file != null) {
@@ -431,7 +469,8 @@ function build_mqtt5_client_from_cli_args(argv: any) {
 }
 
 exports.add_connection_establishment_arguments = add_connection_establishment_arguments;
-exports.add_direct_connection_establishment_arguments = add_direct_connection_establishment_arguments;
+exports.add_direct_connection_establishment_arguments =
+    add_direct_connection_establishment_arguments;
 exports.add_universal_arguments = add_universal_arguments;
 exports.add_common_mqtt_arguments = add_common_mqtt_arguments;
 exports.add_direct_tls_connect_arguments = add_direct_tls_connect_arguments;
@@ -442,7 +481,7 @@ exports.add_shadow_arguments = add_shadow_arguments;
 exports.add_custom_authorizer_arguments = add_custom_authorizer_arguments;
 exports.add_jobs_arguments = add_jobs_arguments;
 exports.add_cognito_arguments = add_cognito_arguments;
-exports.add_x509_arguments = add_x509_arguments
+exports.add_x509_arguments = add_x509_arguments;
 exports.apply_sample_arguments = apply_sample_arguments;
 exports.build_connection_from_cli_args = build_connection_from_cli_args;
 exports.build_mqtt5_client_from_cli_args = build_mqtt5_client_from_cli_args;
