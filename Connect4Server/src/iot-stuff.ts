@@ -1,4 +1,4 @@
-import { iotshadow } from 'aws-iot-device-sdk-v2';
+import { mqtt, iotshadow } from 'aws-iot-device-sdk-v2';
 import { Args } from './util/other-utils';
 
 var shadow_value: unknown;

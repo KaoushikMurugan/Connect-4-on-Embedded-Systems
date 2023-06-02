@@ -13,8 +13,7 @@ import {
     setShadowProperty,
     shadow_property
 } from './iot-stuff';
-import { Args, sleep } from './util/other-utils';
-
+import { Args, prompt, sleep } from './util/other-utils';
 // The relative path is '../../util/cli_args' from here, but the compiled javascript file gets put one level
 // deeper inside the 'dist' folder
 const common_args = require('./util/cli_args');
@@ -34,7 +33,7 @@ yargs
 async function main(argv: Args) {
     common_args.apply_sample_arguments(argv);
 
-    setShadowProperty(argv.shadow_property);
+    setShadowProperty("GameData");
 
     var connection;
     var client;
@@ -67,6 +66,9 @@ async function main(argv: Args) {
         // Take console input when this sample is not running in CI
         if (argv.is_ci == false) {
             while (true) {
+
+                // * GAME LOOP STARTS HERE
+
                 const userInput = await prompt('Enter desired value: ');
                 if (userInput === 'quit') {
                     break;
@@ -78,7 +80,11 @@ async function main(argv: Args) {
                     } else if (userInput == 'null') {
                         data_to_send[shadow_property] = null;
                     } else {
-                        data_to_send[shadow_property] = userInput;
+                        data_to_send[shadow_property] = {
+                            "Board": [[1,1,1,0,1,1],[1,1,1,1,1,1],[1,1,1,1,1,1]],
+                            "Current Turn": 2,
+                            "Winner": -1
+                        };
                     }
 
                     await change_shadow_value(shadow, argv, data_to_send);
