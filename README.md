@@ -4,7 +4,6 @@
 **Project by Ian Chuang and Kaoushik Murugan**
 
 ## A multiplayer Connect 4 game that plays on two TI CC3200 Boards
-<br>
 
 ### `Connect4Client` is the code that is run on the CC3200 Boards 
 
