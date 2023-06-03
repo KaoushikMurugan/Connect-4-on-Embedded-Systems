@@ -9,24 +9,24 @@ import {
     sub_to_shadow_delta,
     get_current_shadow,
     change_shadow_value,
-    ShadowMQTTStates
+    ShadowLocalState
 } from './iot-stuff';
 import { prompt, sleep } from './util/other-utils';
 import { build_direct_mqtt_connection } from './mqtt-stuff';
 
 // Import Device Shadow Data jsons
-import * as DeviceShadowData1 from '../Device1.shadowinfo.json';
-import * as DeviceShadowData2 from '../Device2.shadowinfo.json';
+import * as DeviceShadowInfo1 from '../Device1.shadowinfo.json';
+import * as DeviceShadowInfo2 from '../Device2.shadowinfo.json';
 
 async function main() {
     var shadow_property = 'GameData';
 
-    var shadowMQTTState1: ShadowMQTTStates = {
+    var shadowLocalState1: ShadowLocalState = {
         value: null,
         property: shadow_property,
         update_complete: false
     };
-    var shadowMQTTState2: ShadowMQTTStates = {
+    var shadowLocalState2: ShadowLocalState = {
         value: null,
         property: shadow_property,
         update_complete: false
@@ -38,8 +38,8 @@ async function main() {
     var deviceShadow1;
     var deviceShadow2;
 
-    connectionDevice1 = build_direct_mqtt_connection(DeviceShadowData1);
-    connectionDevice2 = build_direct_mqtt_connection(DeviceShadowData2);
+    connectionDevice1 = build_direct_mqtt_connection(DeviceShadowInfo1);
+    connectionDevice2 = build_direct_mqtt_connection(DeviceShadowInfo2);
     deviceShadow1 = new iotshadow.IotShadowClient(connectionDevice1);
     deviceShadow2 = new iotshadow.IotShadowClient(connectionDevice2);
 
@@ -48,15 +48,15 @@ async function main() {
 
     try {
         // mqtt device 1
-        await sub_to_shadow_update(deviceShadow1, DeviceShadowData1);
-        await sub_to_shadow_get(deviceShadow1, DeviceShadowData1, shadowMQTTState1);
-        await sub_to_shadow_delta(deviceShadow1, DeviceShadowData1, shadowMQTTState1);
-        await get_current_shadow(deviceShadow1, DeviceShadowData1, shadowMQTTState1);
+        await sub_to_shadow_update(deviceShadow1, DeviceShadowInfo1);
+        await sub_to_shadow_get(deviceShadow1, DeviceShadowInfo1, shadowLocalState1);
+        await sub_to_shadow_delta(deviceShadow1, DeviceShadowInfo1, shadowLocalState1);
+        await get_current_shadow(deviceShadow1, DeviceShadowInfo1, shadowLocalState1);
         // mqtt device 2
-        await sub_to_shadow_update(deviceShadow2, DeviceShadowData2);
-        await sub_to_shadow_get(deviceShadow2, DeviceShadowData2, shadowMQTTState2);
-        await sub_to_shadow_delta(deviceShadow2, DeviceShadowData2, shadowMQTTState2);
-        await get_current_shadow(deviceShadow2, DeviceShadowData2, shadowMQTTState2);
+        await sub_to_shadow_update(deviceShadow2, DeviceShadowInfo2);
+        await sub_to_shadow_get(deviceShadow2, DeviceShadowInfo2, shadowLocalState2);
+        await sub_to_shadow_delta(deviceShadow2, DeviceShadowInfo2, shadowLocalState2);
+        await get_current_shadow(deviceShadow2, DeviceShadowInfo2, shadowLocalState2);
 
         // Get current shadows
 
@@ -89,26 +89,26 @@ async function main() {
 
                 await change_shadow_value(
                     deviceShadow1,
-                    DeviceShadowData1,
-                    shadowMQTTState1,
+                    DeviceShadowInfo1,
+                    shadowLocalState1,
                     data_to_send
                 );
                 await change_shadow_value(
                     deviceShadow2,
-                    DeviceShadowData2,
-                    shadowMQTTState2,
+                    DeviceShadowInfo2,
+                    shadowLocalState2,
                     data_to_send
                 );
 
                 await get_current_shadow(
                     deviceShadow1,
-                    DeviceShadowData1,
-                    shadowMQTTState1
+                    DeviceShadowInfo1,
+                    shadowLocalState1
                 );
                 await get_current_shadow(
                     deviceShadow2,
-                    DeviceShadowData2,
-                    shadowMQTTState2
+                    DeviceShadowInfo2,
+                    shadowLocalState2
                 );
             }
         }

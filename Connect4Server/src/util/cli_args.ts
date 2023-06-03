@@ -1,5 +1,5 @@
 // Taken from https://github.com/aws/aws-iot-device-sdk-js-v2/blob/main/samples/util/cli_args.js
-// Not used currently, but used as reference
+// ! Not used currently, but used as reference
 
 /**
  * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.

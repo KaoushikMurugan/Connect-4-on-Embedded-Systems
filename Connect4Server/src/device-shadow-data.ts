@@ -1,4 +1,7 @@
-type DeviceShadowData = {
+/**
+ * The (extra) info not stored in iot shadow class needed to connect to the device shadow
+ */
+type DeviceShadowInfo = {
     /** The name of the thing */
     thing_name: string;
     /**
@@ -23,4 +26,4 @@ type DeviceShadowData = {
     endpoint: string;
 };
 
-export { DeviceShadowData };
+export { DeviceShadowInfo };

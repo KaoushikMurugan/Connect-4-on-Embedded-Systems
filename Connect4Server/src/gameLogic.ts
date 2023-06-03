@@ -11,6 +11,9 @@ class Connect4Game {
     private turn: number;
     /** 0 = not decided, 1 = player 1, 2 = player 2, -1 = tie */
     private winner: number;
+    /**
+     * Initalizes the game
+     */
     constructor() {
         this.board = [];
         for (let i = 0; i < 6; i++) {
@@ -20,17 +23,38 @@ class Connect4Game {
         this.winner = 0;
     }
 
+    /**
+     *
+     * @returns true if the game is over, false otherwise
+     */
     public isGameOver(): boolean {
         return this.winner !== 0;
     }
 
+    /**
+     * -1 - tie
+     *
+     * 0 - game is not over
+     *
+     * 1 - player 1 won
+     *
+     * 2 - player 2 won
+     * @returns the winner of the game
+     */
     public getWinner(): number {
         return this.winner;
     }
 
+    /**
+     * 1 - player 1
+     *
+     * 2 - player 2
+     * @returns whose turn it is
+     */
     public getTurn(): number {
         return this.turn;
     }
+
     /**
      *
      * @param column the column where the new peice is being placed
@@ -61,6 +85,7 @@ class Connect4Game {
         }
         return false;
     }
+
     /**
      * Checks to see if there is a winner
      * @returns 0 if the game is not over, 1 if player 1 won, 2 if player 2 won, -1 if the game is a tie
@@ -85,6 +110,7 @@ class Connect4Game {
             return 0;
         }
     }
+
     /**
      * Checks to see if the board is full
      * @returns true if the board is full, false otherwise
@@ -97,6 +123,7 @@ class Connect4Game {
         }
         return true;
     }
+
     /**
      * Checks the horizontals for a winner
      * @returns 0 if there is no winner, 1 if player 1 won, 2 if player 2 won
@@ -116,6 +143,7 @@ class Connect4Game {
         }
         return 0;
     }
+
     /**
      * Checks the verticals for a winner
      * @returns 0 if there is no winner, 1 if player 1 won, 2 if player 2 won
@@ -155,6 +183,7 @@ class Connect4Game {
         }
         return 0;
     }
+
     /**
      * Checks the off diagonals (top right to bottom left) for a winner
      * @returns 0 if there is no winner, 1 if player 1 won, 2 if player 2 won
@@ -174,6 +203,7 @@ class Connect4Game {
         }
         return 0;
     }
+
     /**
      * Converts the relevant game data into a JSON format to be used by the AWS IoT Shadow
      * @returns the game data in a JSON format

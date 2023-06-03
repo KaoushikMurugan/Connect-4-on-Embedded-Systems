@@ -6,7 +6,17 @@ const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
+/**
+ * Prints out `query` and waits for user input
+ * @param query the string to print out
+ * @returns a promise that resolves to the user input
+ */
 const prompt = (query: string) => new Promise(resolve => rl.question(query, resolve));
+/**
+ *
+ * @param ms the number of milliseconds to sleep for
+ * @returns a promise that resolves after `ms` milliseconds
+ */
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-export { rl, prompt, sleep };
+export { prompt, sleep };
