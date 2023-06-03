@@ -1,107 +1,115 @@
 // Taken from https://github.com/aws/aws-iot-device-sdk-js-v2/blob/main/samples/node/shadow/index.ts
 
 import { iotshadow } from 'aws-iot-device-sdk-v2';
-//import { stringify } from 'querystring';
-import { once } from 'events';
-import yargs from 'yargs';
+// import { stringify } from 'querystring';
+// import { once } from 'events';
 import {
     sub_to_shadow_update,
     sub_to_shadow_get,
     sub_to_shadow_delta,
     get_current_shadow,
     change_shadow_value,
-    setShadowProperty,
-    shadow_property
+    ShadowMQTTStates
 } from './iot-stuff';
-import { Args, prompt, sleep } from './util/other-utils';
-// The relative path is '../../util/cli_args' from here, but the compiled javascript file gets put one level
-// deeper inside the 'dist' folder
-const common_args = require('./util/cli_args');
+import { prompt, sleep } from './util/other-utils';
+import { build_direct_mqtt_connection } from './mqtt-stuff';
 
-yargs
-    .command(
-        '*',
-        false,
-        (yargs: any) => {
-            common_args.add_direct_connection_establishment_arguments(yargs);
-            common_args.add_shadow_arguments(yargs);
-        },
-        main
-    )
-    .parse();
+// Import Device Shadow Data jsons
+import * as DeviceShadowData1 from '../Device1.shadowinfo.json';
+import * as DeviceShadowData2 from '../Device2.shadowinfo.json';
 
-async function main(argv: Args) {
-    common_args.apply_sample_arguments(argv);
+async function main() {
+    var shadow_property = 'GameData';
 
-    setShadowProperty("GameData");
+    var shadowMQTTState1: ShadowMQTTStates = {
+        value: null,
+        property: shadow_property,
+        update_complete: false
+    };
+    var shadowMQTTState2: ShadowMQTTStates = {
+        value: null,
+        property: shadow_property,
+        update_complete: false
+    };
 
-    var connection;
-    var client;
-    var shadow;
+    // Intialize device shadow connections
+    var connectionDevice1;
+    var connectionDevice2;
+    var deviceShadow1;
+    var deviceShadow2;
 
-    if (argv.mqtt5) {
-        client = common_args.build_mqtt5_client_from_cli_args(argv);
-        shadow = iotshadow.IotShadowClient.newFromMqtt5Client(client);
+    connectionDevice1 = build_direct_mqtt_connection(DeviceShadowData1);
+    connectionDevice2 = build_direct_mqtt_connection(DeviceShadowData2);
+    deviceShadow1 = new iotshadow.IotShadowClient(connectionDevice1);
+    deviceShadow2 = new iotshadow.IotShadowClient(connectionDevice2);
 
-        const connectionSuccess = once(client, 'connectionSuccess');
-
-        client.start();
-
-        await connectionSuccess;
-    } else {
-        connection = common_args.build_connection_from_cli_args(argv);
-        shadow = new iotshadow.IotShadowClient(connection);
-
-        await connection.connect();
-    }
+    await connectionDevice1.connect();
+    await connectionDevice2.connect();
 
     try {
-        await sub_to_shadow_update(shadow, argv);
-        await sub_to_shadow_get(shadow, argv);
-        await sub_to_shadow_delta(shadow, argv);
-        await get_current_shadow(shadow, argv);
+        // mqtt device 1
+        await sub_to_shadow_update(deviceShadow1, DeviceShadowData1);
+        await sub_to_shadow_get(deviceShadow1, DeviceShadowData1, shadowMQTTState1);
+        await sub_to_shadow_delta(deviceShadow1, DeviceShadowData1, shadowMQTTState1);
+        await get_current_shadow(deviceShadow1, DeviceShadowData1, shadowMQTTState1);
+        // mqtt device 2
+        await sub_to_shadow_update(deviceShadow2, DeviceShadowData2);
+        await sub_to_shadow_get(deviceShadow2, DeviceShadowData2, shadowMQTTState2);
+        await sub_to_shadow_delta(deviceShadow2, DeviceShadowData2, shadowMQTTState2);
+        await get_current_shadow(deviceShadow2, DeviceShadowData2, shadowMQTTState2);
+
+        // Get current shadows
 
         await sleep(500); // wait half a second
 
-        // Take console input when this sample is not running in CI
-        if (argv.is_ci == false) {
-            while (true) {
+        while (true) {
+            // * GAME LOOP STARTS HERE
 
-                // * GAME LOOP STARTS HERE
-
-                const userInput = await prompt('Enter desired value: ');
-                if (userInput === 'quit') {
-                    break;
-                } else {
-                    let data_to_send: any = {};
-
-                    if (userInput == 'clear_shadow') {
-                        data_to_send = null;
-                    } else if (userInput == 'null') {
-                        data_to_send[shadow_property] = null;
-                    } else {
-                        data_to_send[shadow_property] = {
-                            "Board": [[1,1,1,0,1,1],[1,1,1,1,1,1],[1,1,1,1,1,1]],
-                            "Current Turn": 2,
-                            "Winner": -1
-                        };
-                    }
-
-                    await change_shadow_value(shadow, argv, data_to_send);
-                    await get_current_shadow(shadow, argv);
-                }
-            }
-        }
-        // If this is running in CI, then automatically update the shadow
-        else {
-            var messages_sent = 0;
-            while (messages_sent < 5) {
+            const userInput = await prompt('Enter desired value: ');
+            if (userInput === 'quit') {
+                break;
+            } else {
                 let data_to_send: any = {};
-                data_to_send[shadow_property] =
-                    'Shadow_Value_' + messages_sent.toString();
-                await change_shadow_value(shadow, argv, data_to_send);
-                await get_current_shadow(shadow, argv);
-                messages_sent += 1;
+
+                if (userInput == 'clear_shadow') {
+                    data_to_send = null;
+                } else if (userInput == 'null') {
+                    data_to_send[shadow_property] = null;
+                } else {
+                    data_to_send[shadow_property] = {
+                        Board: [
+                            [1, 1, 0, 1, 0, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1]
+                        ],
+                        'Current Turn': 2,
+                        Winner: -1
+                    };
+                }
+
+                await change_shadow_value(
+                    deviceShadow1,
+                    DeviceShadowData1,
+                    shadowMQTTState1,
+                    data_to_send
+                );
+                await change_shadow_value(
+                    deviceShadow2,
+                    DeviceShadowData2,
+                    shadowMQTTState2,
+                    data_to_send
+                );
+
+                await get_current_shadow(
+                    deviceShadow1,
+                    DeviceShadowData1,
+                    shadowMQTTState1
+                );
+                await get_current_shadow(
+                    deviceShadow2,
+                    DeviceShadowData2,
+                    shadowMQTTState2
+                );
             }
         }
     } catch (error) {
@@ -110,14 +118,12 @@ async function main(argv: Args) {
 
     console.log('Disconnecting..');
 
-    if (connection) {
-        await connection.disconnect();
-    } else {
-        let stopped = once(client, 'stopped');
-        client.stop();
-        await stopped;
-        client.close();
+    if (connectionDevice1) {
+        await connectionDevice1.disconnect();
     }
+    // if (connectionDevice2) {
+    //     await connectionDevice2.disconnect();
+    // }
 
     // force node to wait a second before quitting to finish any promises
     await sleep(1000);
@@ -125,3 +131,5 @@ async function main(argv: Args) {
     // Quit NodeJS
     process.exit(0);
 }
+
+main();

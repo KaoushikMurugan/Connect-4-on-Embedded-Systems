@@ -6,6 +6,7 @@
     "scripts": {
         "build": "npx tsc",
         "start": "node ./dist/src/app.js",
+        "dev": "npm run build && npm run start",
         "format": "npx prettier -w .",
         "test": "./test_prog.sh"
     },

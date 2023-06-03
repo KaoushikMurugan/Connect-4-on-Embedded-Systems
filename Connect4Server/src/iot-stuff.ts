@@ -1,22 +1,25 @@
+// taken from https://github.com/aws/aws-iot-device-sdk-js-v2/blob/main/samples/node/shadow/index.ts
+
 import { mqtt, iotshadow } from 'aws-iot-device-sdk-v2';
-import { Args } from './util/other-utils';
+import { DeviceShadowData } from './device-shadow-data';
 
-var shadow_value: unknown;
-var shadow_property: string;
+type ShadowMQTTStates = {
+    value: unknown;
+    property: string;
+    update_complete: boolean;
+};
 
-var shadow_update_complete = false;
-
-function setShadowProperty(property: string) {
-    shadow_property = property;
-}
-
-async function sub_to_shadow_update(shadow: iotshadow.IotShadowClient, argv: Args) {
+async function sub_to_shadow_update(
+    shadow: iotshadow.IotShadowClient,
+    deviceShadowData: DeviceShadowData
+) {
     return new Promise(async (resolve, reject) => {
         try {
             function updateAccepted(
                 error?: iotshadow.IotShadowError,
                 response?: iotshadow.model.UpdateShadowResponse
             ) {
+                console.log('\nReceived shadow update event.');
                 if (response) {
                     if (response.clientToken !== undefined) {
                         console.log(
@@ -60,12 +63,14 @@ async function sub_to_shadow_update(shadow: iotshadow.IotShadowClient, argv: Arg
                 reject(error);
             }
 
-            console.log('Subscribing to Update events..');
+            console.log(`Subscribing to ${deviceShadowData.thing_name} Update events..`);
             const updateShadowSubRequest: iotshadow.model.UpdateNamedShadowSubscriptionRequest =
                 {
-                    shadowName: argv.shadow_property,
-                    thingName: argv.thing_name
+                    shadowName: deviceShadowData.shadow_name,
+                    thingName: deviceShadowData.thing_name
                 };
+
+            // console.log(JSON.stringify(shadow));
 
             await shadow.subscribeToUpdateShadowAccepted(
                 updateShadowSubRequest,
@@ -86,7 +91,11 @@ async function sub_to_shadow_update(shadow: iotshadow.IotShadowClient, argv: Arg
     });
 }
 
-async function sub_to_shadow_get(shadow: iotshadow.IotShadowClient, argv: Args) {
+async function sub_to_shadow_get(
+    shadow: iotshadow.IotShadowClient,
+    deviceShadowData: DeviceShadowData,
+    shadowMQTTState: ShadowMQTTStates
+) {
     return new Promise(async (resolve, reject) => {
         try {
             function getAccepted(
@@ -102,16 +111,20 @@ async function sub_to_shadow_get(shadow: iotshadow.IotShadowClient, argv: Args) 
                                     JSON.stringify(value) +
                                     "'."
                             );
-                            change_shadow_value(shadow, argv, value);
+                            change_shadow_value(
+                                shadow,
+                                deviceShadowData,
+                                shadowMQTTState,
+                                value
+                            );
                         }
                     }
-
                     if (response?.state.reported) {
                         const value_any: any = response.state.reported;
                         if (value_any) {
                             let found_property = false;
                             for (var prop in value_any) {
-                                if (prop === shadow_property) {
+                                if (prop === shadowMQTTState.property) {
                                     found_property = true;
                                     console.log(
                                         "Shadow contains '" +
@@ -126,7 +139,7 @@ async function sub_to_shadow_get(shadow: iotshadow.IotShadowClient, argv: Args) 
                             if (found_property === false) {
                                 console.log(
                                     "Shadow does not contain '" +
-                                        shadow_property +
+                                        shadowMQTTState.property +
                                         "' property."
                                 );
                             }
@@ -137,7 +150,7 @@ async function sub_to_shadow_get(shadow: iotshadow.IotShadowClient, argv: Args) 
                 if (error || !response) {
                     console.log('Error occurred..');
                 }
-                shadow_update_complete = true;
+                shadowMQTTState.update_complete = true;
                 resolve(true);
             }
 
@@ -153,13 +166,13 @@ async function sub_to_shadow_get(shadow: iotshadow.IotShadowClient, argv: Args) 
                     console.log('Error occurred..');
                 }
 
-                shadow_update_complete = true;
+                shadowMQTTState.update_complete = true;
                 reject(error);
             }
 
-            console.log('Subscribing to Get events..');
+            console.log(`Subscribing to ${deviceShadowData.thing_name} Get events..`);
             const getShadowSubRequest: iotshadow.model.GetShadowSubscriptionRequest = {
-                thingName: argv.thing_name
+                thingName: deviceShadowData.thing_name
             };
 
             await shadow.subscribeToGetShadowAccepted(
@@ -181,7 +194,11 @@ async function sub_to_shadow_get(shadow: iotshadow.IotShadowClient, argv: Args) 
     });
 }
 
-async function sub_to_shadow_delta(shadow: iotshadow.IotShadowClient, argv: Args) {
+async function sub_to_shadow_delta(
+    shadow: iotshadow.IotShadowClient,
+    deviceShadowData: DeviceShadowData,
+    shadowMQTTState: ShadowMQTTStates
+) {
     return new Promise(async (resolve, reject) => {
         try {
             function deltaEvent(
@@ -199,28 +216,41 @@ async function sub_to_shadow_delta(shadow: iotshadow.IotShadowClient, argv: Args
                     if (value_any === null || value_any === undefined) {
                         console.log(
                             "Delta reports that '" +
-                                shadow_property +
+                                shadowMQTTState.property +
                                 "' was deleted. Resetting defaults.."
                         );
                         let data_to_send: any = {};
-                        data_to_send[shadow_property] = argv.shadow_value;
-                        change_shadow_value(shadow, argv, data_to_send);
+                        data_to_send[shadowMQTTState.property] = shadowMQTTState.value;
+                        change_shadow_value(
+                            shadow,
+                            deviceShadowData,
+                            shadowMQTTState,
+                            data_to_send
+                        );
                     } else {
-                        if (value_any[shadow_property] !== undefined) {
-                            if (value_any[shadow_property] !== shadow_value) {
+                        if (value_any[shadowMQTTState.property] !== undefined) {
+                            if (
+                                value_any[shadowMQTTState.property] !==
+                                shadowMQTTState.value
+                            ) {
                                 console.log(
                                     "Delta reports that desired value is '" +
-                                        value_any[shadow_property] +
+                                        value_any[shadowMQTTState.property] +
                                         "'. Changing local value.."
                                 );
                                 let data_to_send: any = {};
-                                data_to_send[shadow_property] =
-                                    value_any[shadow_property];
-                                change_shadow_value(shadow, argv, data_to_send);
+                                data_to_send[shadowMQTTState.property] =
+                                    value_any[shadowMQTTState.property];
+                                change_shadow_value(
+                                    shadow,
+                                    deviceShadowData,
+                                    shadowMQTTState,
+                                    data_to_send
+                                );
                             } else {
                                 console.log(
                                     "Delta did not report a change in '" +
-                                        shadow_property +
+                                        shadowMQTTState.property +
                                         "'."
                                 );
                             }
@@ -230,17 +260,19 @@ async function sub_to_shadow_delta(shadow: iotshadow.IotShadowClient, argv: Args
                     }
                 } else {
                     console.log(
-                        "Delta did not report a change in '" + shadow_property + "'."
+                        "Delta did not report a change in '" +
+                            shadowMQTTState.property +
+                            "'."
                     );
                 }
 
                 resolve(true);
             }
 
-            console.log('Subscribing to Delta events..');
+            console.log(`Subscribing to ${deviceShadowData.thing_name} Delta events..`);
             const deltaShadowSubRequest: iotshadow.model.ShadowDeltaUpdatedSubscriptionRequest =
                 {
-                    thingName: argv.thing_name
+                    thingName: deviceShadowData.thing_name
                 };
 
             await shadow.subscribeToShadowDeltaUpdatedEvents(
@@ -256,18 +288,24 @@ async function sub_to_shadow_delta(shadow: iotshadow.IotShadowClient, argv: Args
     });
 }
 
-async function get_current_shadow(shadow: iotshadow.IotShadowClient, argv: Args) {
+async function get_current_shadow(
+    shadow: iotshadow.IotShadowClient,
+    deviceShadowData: DeviceShadowData,
+    shadowMQTTState: ShadowMQTTStates
+) {
     return new Promise(async (resolve, reject) => {
         try {
             const getShadow: iotshadow.model.GetShadowRequest = {
-                thingName: argv.thing_name
+                thingName: deviceShadowData.thing_name
             };
 
-            shadow_update_complete = false;
-            console.log('Requesting current shadow state..');
+            shadowMQTTState.update_complete = false;
+            console.log(
+                `Requesting current shadow state for ${deviceShadowData.thing_name}..`
+            );
             shadow.publishGetShadow(getShadow, mqtt.QoS.AtLeastOnce);
 
-            await get_current_shadow_update_wait();
+            await get_current_shadow_update_wait(shadowMQTTState);
             resolve(true);
         } catch (error) {
             reject(error);
@@ -275,11 +313,11 @@ async function get_current_shadow(shadow: iotshadow.IotShadowClient, argv: Args)
     });
 }
 
-async function get_current_shadow_update_wait() {
+async function get_current_shadow_update_wait(shadowMQTTState: ShadowMQTTStates) {
     // Wait until shadow_update_complete is true, showing the result returned
     return await new Promise(resolve => {
         const interval = setInterval(() => {
-            if (shadow_update_complete == true) {
+            if (shadowMQTTState.update_complete == true) {
                 resolve(true);
                 clearInterval(interval);
             }
@@ -289,7 +327,8 @@ async function get_current_shadow_update_wait() {
 
 function change_shadow_value(
     shadow: iotshadow.IotShadowClient,
-    argv: Args,
+    deviceShadowData: DeviceShadowData,
+    shadowMQTTState: ShadowMQTTStates,
     new_value?: object
 ) {
     return new Promise(async (resolve, reject) => {
@@ -299,25 +338,29 @@ function change_shadow_value(
                 let skip_send = false;
 
                 if (new_value_any !== null) {
-                    if (new_value_any[shadow_property] == shadow_value) {
+                    if (
+                        new_value_any[shadowMQTTState.property] == shadowMQTTState.value
+                    ) {
                         skip_send = true;
                     }
                 }
                 if (skip_send == false) {
                     if (new_value_any === null) {
-                        shadow_value = new_value_any;
+                        shadowMQTTState.value = new_value_any;
                     } else {
-                        shadow_value = new_value_any[shadow_property];
+                        shadowMQTTState.value = new_value_any[shadowMQTTState.property];
                     }
 
-                    console.log("Changed local shadow value to '" + shadow_value + "'.");
+                    console.log(
+                        "Changed local shadow value to '" + shadowMQTTState.value + "'."
+                    );
 
                     var updateShadow: iotshadow.model.UpdateShadowRequest = {
                         state: {
                             desired: new_value,
                             reported: new_value
                         },
-                        thingName: argv.thing_name
+                        thingName: deviceShadowData.thing_name
                     };
 
                     await shadow.publishUpdateShadow(updateShadow, mqtt.QoS.AtLeastOnce);
@@ -334,8 +377,7 @@ function change_shadow_value(
 }
 
 export {
-    setShadowProperty,
-    shadow_property,
+    ShadowMQTTStates,
     sub_to_shadow_update,
     sub_to_shadow_get,
     sub_to_shadow_delta,
