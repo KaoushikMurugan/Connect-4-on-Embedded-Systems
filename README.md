@@ -25,7 +25,7 @@ It is a node.js project using Amazon's IoT SDK to communicate with the boards ov
 **1. Download the Connect4Server directory to the device where you'll host the server**
 **2. Inside the Connect4Server directory, run:**
 ```console
-~/Connect4Server$ npm install
+npm install
 ```
 
 **3. Copy over (to a  location of your choise) the necessary certificates and keys to connect to the server**
@@ -46,11 +46,11 @@ Rename the files to `Device1.shadowinfo.json` and `Device2.shadowinfo.json`
 
 **5. Run the following command to start the server**
 ```console
-~/Connect4Server$ npm run dev
+npm run dev
 ```
 Ensure that you're using **node v16.18.0** by running
-```console
-~/Connect4Server$ node -v
+```
+node -v
 ```
 
 ## Setting up Connect4Client
