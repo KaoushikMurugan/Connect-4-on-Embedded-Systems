@@ -1,6 +1,6 @@
 type Connect4GameData = {
     Board: number[][];
-    'Current Turn': number;
+    CurrentTurn: number;
     Winner: number;
 };
 
@@ -11,6 +11,7 @@ class Connect4Game {
     private turn: number;
     /** 0 = not decided, 1 = player 1, 2 = player 2, -1 = tie */
     private winner: number;
+
     /**
      * Initalizes the game
      */
@@ -19,7 +20,16 @@ class Connect4Game {
         for (let i = 0; i < 6; i++) {
             this.board[i] = [0, 0, 0, 0, 0, 0, 0];
         }
-        this.turn = 0;
+        this.turn = 1;
+        this.winner = 0;
+    }
+
+    public resetGame(): void {
+        this.board = [];
+        for (let i = 0; i < 6; i++) {
+            this.board[i] = [0, 0, 0, 0, 0, 0, 0];
+        }
+        this.turn = 1;
         this.winner = 0;
     }
 
@@ -61,7 +71,7 @@ class Connect4Game {
      * @param player the player who is placing the peice
      * @returns true if the move was valid, false otherwise
      */
-    public move(column: number, player: number): boolean {
+    public playMove(column: number, player: number): boolean {
         if (this.isGameOver()) {
             return false;
         }
@@ -77,8 +87,11 @@ class Connect4Game {
         }
         for (let i = 5; i >= 0; i--) {
             if (this.board[i]![column] === 0) {
+                // Place piece on the board
                 this.board[i]![column] = player;
+                // Change turn to the next player
                 this.turn = (this.turn % 2) + 1;
+                // Check to see if there is a winner
                 this.winner = this.checkWinner();
                 return true;
             }
@@ -208,10 +221,10 @@ class Connect4Game {
      * Converts the relevant game data into a JSON format to be used by the AWS IoT Shadow
      * @returns the game data in a JSON format
      */
-    public toJSON(): Connect4GameData {
+    public gameStateToJSON(): Connect4GameData {
         return {
             Board: this.board,
-            'Current Turn': this.turn,
+            CurrentTurn: this.turn,
             Winner: this.winner
         };
     }

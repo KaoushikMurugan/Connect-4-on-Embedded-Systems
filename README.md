@@ -53,6 +53,16 @@ Ensure that you're using **node v16.18.0** by running
 ~/Connect4Server$ node -v
 ```
 
+## Setting up Connect4Client
+
+## AWS Setup
+
+When creating the policies for the device(s), use template provided in [PolicyPremissions.json](https://github.com/KaoushikMurugan/EEC172-Final-Project/blob/main/PolicyPremissions.json).
+Replace:
+- <region> with the region you are using (e.g. `us-east-1`)
+- <aws_account_id> with your aws account id
+- <thing_name> with the name of your thing
+
 ## Software Requirements
 - CCS to run/test/debug embeded C code for the CC3200 board (* not required if you aren't changing the code)
 - UniFlash to flash the program to the CC3200 board

@@ -1,0 +1,50 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Action": "iot:Publish",
+        "Resource": [
+          "arn:aws:iot:<region>:<aws_account_id>:topic/$aws/things/<thing_name>/shadow/get",
+          "arn:aws:iot:<region>:<aws_account_id>:topic/$aws/things/<thing_name>/shadow/update"
+        ]
+      },
+      {
+        "Effect": "Allow",
+        "Action": "iot:Receive",
+        "Resource": [
+          "arn:aws:iot:<region>:<aws_account_id>:topic/$aws/things/<thing_name>/shadow/get/accepted",
+          "arn:aws:iot:<region>:<aws_account_id>:topic/$aws/things/<thing_name>/shadow/get/rejected",
+          "arn:aws:iot:<region>:<aws_account_id>:topic/$aws/things/<thing_name>/shadow/update/accepted",
+          "arn:aws:iot:<region>:<aws_account_id>:topic/$aws/things/<thing_name>/shadow/update/rejected",
+          "arn:aws:iot:<region>:<aws_account_id>:topic/$aws/things/<thing_name>/shadow/update/delta"
+        ]
+      },
+      {
+        "Effect": "Allow",
+        "Action": "iot:Subscribe",
+        "Resource": [
+          "arn:aws:iot:<region>:<aws_account_id>:topicfilter/$aws/things/<thing_name>/shadow/get/accepted",
+          "arn:aws:iot:<region>:<aws_account_id>:topicfilter/$aws/things/<thing_name>/shadow/get/rejected",
+          "arn:aws:iot:<region>:<aws_account_id>:topicfilter/$aws/things/<thing_name>/shadow/update/accepted",
+          "arn:aws:iot:<region>:<aws_account_id>:topicfilter/$aws/things/<thing_name>/shadow/update/rejected",
+          "arn:aws:iot:<region>:<aws_account_id>:topicfilter/$aws/things/<thing_name>/shadow/update/delta"
+        ]
+      },
+      {
+        "Effect": "Allow",
+        "Action": "iot:Connect",
+        "Resource": "arn:aws:iot:<region>:<aws_account_id>:client/test-*"
+      },
+      {
+        "Effect": "Allow",
+        "Action": "iot:GetThingShadow",
+        "Resource": "arn:aws:iot:<region>:<aws_account_id>:thing/<thing_name>"
+      },
+      {
+        "Effect": "Allow",
+        "Action": "iot:UpdateThingShadow",
+        "Resource": "arn:aws:iot:<region>:<aws_account_id>:thing/<thing_name>"
+      }
+    ]
+  }
