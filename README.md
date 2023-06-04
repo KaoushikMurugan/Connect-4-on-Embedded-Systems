@@ -12,9 +12,11 @@ It is an embeeded C project for the CC3200 board. All board-specfic C includes c
 ### `Connect4Server` is the code that is run on an AWS EC2 Server
 It is a node.js project using Amazon's IoT SDK to communicate with the boards over MQTT
 
-### `Device-1-certs` is the location where the certificates associated to the first CC3200 board are located
+### `Device-1-certs` is the location where we store our certificates associated to the first CC3200 board
 
-### `Device-2-certs` is the location where the certificates associated to the second CC3200 board are located
+### `Device-2-certs` is the location where we store our certificates associated to the second CC3200 board
+
+You do not have to store them in those directories, however it may help with organization. All code that requires the certificates and keys are based on user specified relative paths (see [intructions on how to run Connect4Server](https://github.com/KaoushikMurugan/EEC172-Final-Project#how-to-run-connect4server))
 
 # Instructions
 
@@ -24,11 +26,11 @@ It is a node.js project using Amazon's IoT SDK to communicate with the boards ov
 
 **1. Download the Connect4Server directory to the device where you'll host the server**
 **2. Inside the Connect4Server directory, run:**
-```console
+```sh
 npm install
 ```
 
-**3. Copy over (to a  location of your choise) the necessary certificates and keys to connect to the server**
+**3. Copy over (to a location of your choice) the necessary certificates and keys to connect to the server**
 You'll need the following certificates for each device that you want to connect:
 - Client Certificate
 - RootCA (RootCA1 - RSA 2048)
@@ -40,16 +42,16 @@ The template is provided in [Connect4Server/Device.shadowinfo.template.json](htt
 - The paths to the certificates and keys should be relative to the .shadowinfo.json's file location.
 - `thing_name` is the name of the aws iot thing you want to connect to
 - `shadow_name` is the name of the aws iot thing's device shadow. If you created an unnamed (classic) device shadow, then it's name will be `Classic Shadow`
-- `endpoint` can be found on your withing your things's ARN and your device shadow's URL. It is of the format `<random charecters>.iot.<region>.amazonaws.com`
+- `endpoint` can be found on your within your things's ARN and/or your device shadow's URL. It is of the format `<random charecters>.iot.<region>.amazonaws.com`
 
 Rename the files to `Device1.shadowinfo.json` and `Device2.shadowinfo.json`
 
 **5. Run the following command to start the server**
-```console
+```sh
 npm run dev
 ```
 Ensure that you're using **node v16.18.0** by running
-```
+```sh
 node -v
 ```
 
@@ -62,6 +64,8 @@ Replace:
 - <region> with the region you are using (e.g. `us-east-1`)
 - <aws_account_id> with your aws account id
 - <thing_name> with the name of your thing
+
+The permissions allows communication with the device shadow via HTTP (physical device to shadow) as well as MQTT (shadow to server)
 
 ## Software Requirements
 - CCS to run/test/debug embeded C code for the CC3200 board (* not required if you aren't changing the code)
