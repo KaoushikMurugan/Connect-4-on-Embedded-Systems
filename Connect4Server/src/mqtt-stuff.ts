@@ -1,12 +1,12 @@
+// Modified function from https://github.com/aws/aws-iot-device-sdk-js-v2/blob/main/samples/util/cli_args.js
+// but using json args instead of command line args
+
 import { DeviceShadowInfo } from './device-shadow-data';
 
 const awscrt = require('aws-crt');
 const http = awscrt.http;
 const iot = awscrt.iot;
 const mqtt = awscrt.mqtt;
-
-// Modified function from https://github.com/aws/aws-iot-device-sdk-js-v2/blob/main/samples/util/cli_args.js
-// but using json args instead of command line args
 
 /**
  * Build a direct mqtt connection using mtls, (http) proxy optional

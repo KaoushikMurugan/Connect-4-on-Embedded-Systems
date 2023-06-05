@@ -1,9 +1,27 @@
+/**
+ * enum to represent the different game states
+ */
+enum GameState {
+    WaitingForPlayer,
+    GameOver,
+    Playing
+}
+
+/**
+ * Data regarding the game that is sent to AWS IoT Device Shadow(s)
+ */
 type Connect4GameData = {
-    Board: number[][];
+    Board: string;
     CurrentTurn: number;
     Winner: number;
+    /** 0 = awaiting input */
+    PlayerInput: number;
+    GameState: GameState;
 };
 
+/**
+ * Class to represent a game of Connect 4
+ */
 class Connect4Game {
     /** 0 = empty, 1 = player 1, 2 = player 2 */
     private board: number[][];
@@ -11,6 +29,8 @@ class Connect4Game {
     private turn: number;
     /** 0 = not decided, 1 = player 1, 2 = player 2, -1 = tie */
     private winner: number;
+    /** current game state */
+    private gameState: GameState;
 
     /**
      * Initalizes the game
@@ -22,6 +42,15 @@ class Connect4Game {
         }
         this.turn = 1;
         this.winner = 0;
+        this.gameState = GameState.WaitingForPlayer;
+    }
+
+    /**
+     * Sets the game state
+     * @param state the new game state
+     */
+    public setGameState(state: GameState) {
+        this.gameState = state;
     }
 
     public resetGame(): void {
@@ -31,6 +60,7 @@ class Connect4Game {
         }
         this.turn = 1;
         this.winner = 0;
+        this.gameState = GameState.WaitingForPlayer;
     }
 
     /**
@@ -61,21 +91,17 @@ class Connect4Game {
      * 2 - player 2
      * @returns whose turn it is
      */
-    public getTurn(): number {
+    public getCurrentPlayer(): number {
         return this.turn;
     }
 
     /**
      *
-     * @param column the column where the new peice is being placed
-     * @param player the player who is placing the peice
+     * @param column the column where the new peice is being placed (0-indexed)
      * @returns true if the move was valid, false otherwise
      */
-    public playMove(column: number, player: number): boolean {
+    public playMove(column: number): boolean {
         if (this.isGameOver()) {
-            return false;
-        }
-        if (this.turn !== player) {
             return false;
         }
         if (column < 0 || column > 6) {
@@ -88,7 +114,7 @@ class Connect4Game {
         for (let i = 5; i >= 0; i--) {
             if (this.board[i]![column] === 0) {
                 // Place piece on the board
-                this.board[i]![column] = player;
+                this.board[i]![column] = this.turn;
                 // Change turn to the next player
                 this.turn = (this.turn % 2) + 1;
                 // Check to see if there is a winner
@@ -221,13 +247,25 @@ class Connect4Game {
      * Converts the relevant game data into a JSON format to be used by the AWS IoT Shadow
      * @returns the game data in a JSON format
      */
-    public gameStateToJSON(): Connect4GameData {
+    public gameStateToJSON(playerInput: number): Connect4GameData {
+        // Convert this.board into a string of numbers
+        // For easy parsing in C
+
+        var boardString = '';
+        for (let i = 0; i < 6; i++) {
+            for (let j = 0; j < 7; j++) {
+                boardString += this.board[i]![j]!.toString();
+            }
+        }
+
         return {
-            Board: this.board,
+            Board: boardString,
             CurrentTurn: this.turn,
-            Winner: this.winner
+            Winner: this.winner,
+            PlayerInput: playerInput,
+            GameState: this.gameState
         };
     }
 }
 
-export { Connect4Game };
+export { GameState, Connect4GameData, Connect4Game };

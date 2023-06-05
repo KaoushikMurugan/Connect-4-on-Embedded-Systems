@@ -1,4 +1,6 @@
 // taken from https://github.com/aws/aws-iot-device-sdk-js-v2/blob/main/samples/node/shadow/index.ts
+// modified to be depented on parameters instead of global variables, which allows for multiple devices to use these functions
+// Also modified to keep track of player input
 
 import { mqtt, iotshadow } from 'aws-iot-device-sdk-v2';
 import { DeviceShadowInfo } from './device-shadow-data';
@@ -11,8 +13,18 @@ type ShadowLocalState = {
     value: unknown;
     /** property within state.desired that we are modifying */
     property: string;
+    /** input property name (must be sub-property of property) */
+    inputProperty: string;
     /** mutex to ensure no other process runs during an update fetch */
-    update_complete: boolean;
+    updateComplete: boolean;
+    /** current input */
+    playerInput: number;
+    /** input timestamp */
+    playerInputTimestamp: number;
+    /** if the player Input value was used */
+    playerInputUsed: boolean;
+    /** if the player is ready */
+    ready: number;
 };
 
 /**
@@ -23,7 +35,9 @@ type ShadowLocalState = {
  */
 async function sub_to_shadow_update(
     shadow: iotshadow.IotShadowClient,
-    deviceShadowInfo: DeviceShadowInfo
+    deviceShadowInfo: DeviceShadowInfo,
+    //@ts-ignore
+    shadowLocalState: ShadowLocalState
 ) {
     return new Promise(async (resolve, reject) => {
         try {
@@ -37,25 +51,25 @@ async function sub_to_shadow_update(
                 if (response) {
                     if (response.clientToken !== undefined) {
                         console.log(
-                            'Succcessfully updated shadow for clientToken: ' +
+                            `Successfully updated ${deviceShadowInfo.thing_name} shadow for clientToken: ` +
                                 response.clientToken +
                                 '.'
                         );
                     } else {
                         console.log(
-                            `Succcessfully updated ${deviceShadowInfo.thing_name} shadow.`
+                            `Successfully updated ${deviceShadowInfo.thing_name} shadow.`
                         );
                     }
                     if (response.state?.desired !== undefined) {
-                        console.log(
-                            '\t desired state: ' + JSON.stringify(response.state.desired)
-                        );
+                        // console.log(
+                        //     '\t desired state: ' + JSON.stringify(response.state.desired)
+                        // );
                     }
                     if (response.state?.reported !== undefined) {
-                        console.log(
-                            '\t reported state: ' +
-                                JSON.stringify(response.state.reported)
-                        );
+                        // console.log(
+                        //     '\t reported state: ' +
+                        //         JSON.stringify(response.state.reported)
+                        // );
                     }
                 }
 
@@ -149,13 +163,14 @@ async function sub_to_shadow_get(
                             for (var prop in value_any) {
                                 if (prop === shadowLocalState.property) {
                                     found_property = true;
-                                    console.log(
-                                        `${deviceShadowInfo.thing_name} Shadow contains '` +
-                                            prop +
-                                            "'. Reported value: '" +
-                                            JSON.stringify(value_any[prop]) +
-                                            "'."
-                                    );
+                                    // console.log(
+                                    //     `${deviceShadowInfo.thing_name} Shadow contains '` +
+                                    //         prop +
+                                    //         "'. Reported value: '" +
+                                    //         JSON.stringify(value_any[prop]) +
+                                    //         "'."
+                                    // );
+                                    console.log('Received shadow state');
                                     break;
                                 }
                             }
@@ -173,7 +188,7 @@ async function sub_to_shadow_get(
                 if (error || !response) {
                     console.log('Error occurred...');
                 }
-                shadowLocalState.update_complete = true;
+                shadowLocalState.updateComplete = true;
                 resolve(true);
             }
 
@@ -189,7 +204,7 @@ async function sub_to_shadow_get(
                     console.log('Error occurred...');
                 }
 
-                shadowLocalState.update_complete = true;
+                shadowLocalState.updateComplete = true;
                 reject(error);
             }
 
@@ -270,6 +285,36 @@ async function sub_to_shadow_delta(
                                         value_any[shadowLocalState.property] +
                                         "'. Changing local value..."
                                 );
+                                // Check player input
+                                let metadata: any = response?.metadata;
+                                let inputTimestamp =
+                                    metadata[shadowLocalState.property][
+                                        shadowLocalState.inputProperty
+                                    ];
+                                let inputValue =
+                                    value_any[shadowLocalState.property][
+                                        shadowLocalState.inputProperty
+                                    ];
+                                if (metadata !== null && metadata !== undefined) {
+                                    if (
+                                        inputTimestamp !== undefined &&
+                                        inputTimestamp !== null &&
+                                        inputValue !== undefined &&
+                                        inputValue !== null
+                                    ) {
+                                        if (
+                                            inputTimestamp !==
+                                            shadowLocalState.playerInputTimestamp
+                                        ) {
+                                            // New input was received
+                                            console.log('player entered new input');
+                                            shadowLocalState.playerInputTimestamp =
+                                                inputTimestamp;
+                                            shadowLocalState.playerInput = inputValue;
+                                            shadowLocalState.playerInputUsed = false;
+                                        }
+                                    }
+                                }
                                 let data_to_send: any = {};
                                 data_to_send[shadowLocalState.property] =
                                     value_any[shadowLocalState.property];
@@ -338,7 +383,7 @@ async function get_current_shadow(
                 thingName: deviceShadowInfo.thing_name
             };
 
-            shadowLocalState.update_complete = false;
+            shadowLocalState.updateComplete = false;
             console.log(
                 `Requesting current shadow state for ${deviceShadowInfo.thing_name}...`
             );
@@ -361,7 +406,7 @@ async function get_current_shadow_update_wait(shadowLocalState: ShadowLocalState
     // Wait until shadow_update_complete is true, showing the result returned
     return await new Promise(resolve => {
         const interval = setInterval(() => {
-            if (shadowLocalState.update_complete == true) {
+            if (shadowLocalState.updateComplete == true) {
                 resolve(true);
                 clearInterval(interval);
             }
