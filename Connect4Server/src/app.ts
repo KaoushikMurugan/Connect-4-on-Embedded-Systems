@@ -10,14 +10,15 @@ import {
     get_current_shadow,
     change_shadow_value,
     ShadowLocalState
-} from './iot-stuff';
-import { sleep } from './util/other-utils';
+} from './iot-event-stuff';
 import { build_direct_mqtt_connection } from './mqtt-stuff';
 
 // Import Device Shadow Data jsons
 import * as DeviceShadowInfo1 from '../Device1.shadowinfo.json';
 import * as DeviceShadowInfo2 from '../Device2.shadowinfo.json';
-import { Connect4Game, GameState } from './gameLogic';
+import { Connect4Game, GameState } from './game-logic';
+
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 async function main() {
     var shadow_property = 'GameData';
@@ -199,6 +200,7 @@ async function main() {
             }
 
             switch (playerInput) {
+                // * For Later
                 // case -2:
                 //     // -2 means restart game
                 //     game.resetGame();
