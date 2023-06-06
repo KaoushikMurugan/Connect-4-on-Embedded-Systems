@@ -2,7 +2,7 @@
  * enum to represent the different game states
  */
 enum GameState {
-    WaitingForPlayer,
+    Reserved,
     GameOver,
     Playing
 }
@@ -42,7 +42,7 @@ class Connect4Game {
         }
         this.turn = 1;
         this.winner = 0;
-        this.gameState = GameState.WaitingForPlayer;
+        this.gameState = GameState.GameOver;
     }
 
     /**
@@ -60,7 +60,7 @@ class Connect4Game {
         }
         this.turn = 1;
         this.winner = 0;
-        this.gameState = GameState.WaitingForPlayer;
+        this.gameState = GameState.GameOver;
     }
 
     /**
@@ -168,8 +168,8 @@ class Connect4Game {
      * @returns 0 if there is no winner, 1 if player 1 won, 2 if player 2 won
      */
     private checkHotizontal(): number {
-        for (let i = 0; i < 6; i++) {
-            for (let j = 0; j < 4; j++) {
+        for (let j = 0; j < 4; j++) {
+            for (let i = 0; i < 6; i++) {
                 if (
                     this.board[i]![j] !== 0 &&
                     this.board[i]![j] === this.board[i]![j + 1] &&
@@ -189,7 +189,7 @@ class Connect4Game {
      */
     private checkVertical(): number {
         for (let i = 0; i < 3; i++) {
-            for (let j = 0; j < 6; j++) {
+            for (let j = 0; j < 7; j++) {
                 if (
                     this.board[i]![j] !== 0 &&
                     this.board[i]![j] === this.board[i + 1]![j] &&
@@ -208,13 +208,13 @@ class Connect4Game {
      * @returns 0 if there is no winner, 1 if player 1 won, 2 if player 2 won
      */
     private checkMainDiagonal(): number {
-        for (let i = 0; i < 3; i++) {
-            for (let j = 3; j < 6; j++) {
+        for (let i = 3; i < 6; i++) {
+            for (let j = 0; j < 4; j++) {
                 if (
                     this.board[i]![j] !== 0 &&
-                    this.board[i]![j] === this.board[i + 1]![j - 1] &&
-                    this.board[i]![j] === this.board[i + 2]![j - 2] &&
-                    this.board[i]![j] === this.board[i + 3]![j - 3]
+                    this.board[i]![j] === this.board[i - 1]![j + 1] &&
+                    this.board[i]![j] === this.board[i - 2]![j + 2] &&
+                    this.board[i]![j] === this.board[i - 3]![j + 3]
                 ) {
                     return this.board[i]![j]!;
                 }
@@ -228,13 +228,13 @@ class Connect4Game {
      * @returns 0 if there is no winner, 1 if player 1 won, 2 if player 2 won
      */
     private checkOffDiagonal(): number {
-        for (let i = 0; i < 3; i++) {
-            for (let j = 0; j < 3; j++) {
+        for (let i = 3; i < 6; i++) {
+            for (let j = 3; j < 7; j++) {
                 if (
                     this.board[i]![j] !== 0 &&
-                    this.board[i]![j] === this.board[i + 1]![j + 1] &&
-                    this.board[i]![j] === this.board[i + 2]![j + 2] &&
-                    this.board[i]![j] === this.board[i + 3]![j + 3]
+                    this.board[i]![j] === this.board[i - 1]![j - 1] &&
+                    this.board[i]![j] === this.board[i - 2]![j - 2] &&
+                    this.board[i]![j] === this.board[i - 3]![j - 3]
                 ) {
                     return this.board[i]![j]!;
                 }

@@ -2,3 +2,4 @@
 *.pem*
 aws-ssh-commands.txt
 .DS_Store
+copy_files.sh

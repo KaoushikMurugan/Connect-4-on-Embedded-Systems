@@ -307,7 +307,6 @@ async function sub_to_shadow_delta(
                                             shadowLocalState.playerInputTimestamp
                                         ) {
                                             // New input was received
-                                            console.log('player entered new input');
                                             shadowLocalState.playerInputTimestamp =
                                                 inputTimestamp;
                                             shadowLocalState.playerInput = inputValue;

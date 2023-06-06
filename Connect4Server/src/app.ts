@@ -107,6 +107,8 @@ async function main() {
 
         let readyResetBoard = false;
 
+        let sentGameOver = false;
+
         let ready: number = 0;
         // if 0 - no-one is ready
         // if 1 - player 1 is ready
@@ -123,12 +125,12 @@ async function main() {
             await sleep(500); // wait half a second
 
             // Check if there is a winner
-            if (game.getWinner() !== 0 && sentMessage == false) {
+            if (game.getWinner() !== 0 && sentGameOver == false) {
                 console.log(`Player ${game.getWinner()} won!`);
                 game.setGameState(GameState.GameOver);
                 ready = 0;
                 updateAndGetShadows(0);
-                sentMessage = true;
+                sentGameOver = true;
                 readyResetBoard = false;
             }
 
@@ -156,7 +158,7 @@ async function main() {
                     shadowLocalState1.playerInputUsed = true;
                     shadowLocalState1.ready = 1;
                     ready += 1;
-                    // console.log('Player 1 is ready ' + ready);
+                    console.log('Player 1 is ready ' + ready);
                     sentMessage = false;
                 } else if (
                     ready !== 2 &&
@@ -166,14 +168,19 @@ async function main() {
                     shadowLocalState1.playerInputUsed = true;
                     shadowLocalState2.ready = 1;
                     ready += 2;
-                    // console.log('Player 2 is ready ' + ready);
+                    console.log('Player 2 is ready ' + ready);
                     sentMessage = false;
                 }
-            } else {
+            }
+
+            if (ready === 3) {
                 // console.log('Both players are ready');
                 if (readyResetBoard === false) {
+                    game.resetGame();
+                    game.setGameState(GameState.Playing);
                     updateAndGetShadows(0);
                     readyResetBoard = true;
+                    sentGameOver = false;
                 }
             }
 
@@ -231,10 +238,22 @@ async function main() {
                         updateAndGetShadows(0);
                     } else {
                         console.log('Invalid move');
+                        if (game.getCurrentPlayer() === 1) {
+                            shadowLocalState1.playerInputUsed = true;
+                        } else if (game.getCurrentPlayer() === 2) {
+                            shadowLocalState2.playerInputUsed = true;
+                        }
+                        updateAndGetShadows(0);
                     }
                     break;
                 default:
                     console.log('Invalid input');
+                    if (game.getCurrentPlayer() === 1) {
+                        shadowLocalState1.playerInputUsed = true;
+                    } else if (game.getCurrentPlayer() === 2) {
+                        shadowLocalState2.playerInputUsed = true;
+                    }
+                    updateAndGetShadows(0);
             }
         }
     } catch (error) {
