@@ -1208,10 +1208,22 @@ void drawText(char* text, int x, int y) {
     Outstr(text); // draw string
 }
 
-void updateOLED() {
+void updateOLEDPlaying() {
+    fillScreen(BLACK);
+    drawBoard(grid);
+    if (currentTurn == PLAYER) {
+        drawSelection(selection_index, WHITE);
+    }
+    else {
+        drawSelection(selection_index, GREY);
+    }
+
+}
+
+void updateOLEDGameOver() {
     fillScreen(BLACK);
 
-    if (gameState == 1 && winner != 0) {
+    if (winner != 0) {
         drawBoard(grid);
         drawSelection(selection_index, GREY);
         delay(200);
@@ -1226,22 +1238,10 @@ void updateOLED() {
         else {
             drawText("You lost!", 10, 20);
         }
-    } else if (gameState == 1 && winner == 0) {
+    } else if (winner == 0) {
         fillScreen(BLACK);
         drawText("Press 5 to start", 10, 20);
     }
-
-    else {
-        drawBoard(grid);
-        if (currentTurn == PLAYER) {
-            drawSelection(selection_index, WHITE);
-        }
-        else {
-            drawSelection(selection_index, GREY);
-        }
-
-    }
-
 }
 
 
@@ -1425,7 +1425,7 @@ void main() {
                     drawText("Waiting for player...", 10, 20);
                 }
             } else {
-                updateOLED();
+                updateOLEDGameOver();
                 signalReceived = 0;
                 curBitString = 0;
                 bitsSoFar = 0;
@@ -1472,7 +1472,7 @@ void main() {
                 delay(100);
             } while (playerInput != 0);
 
-            updateOLED();
+            updateOLEDPlaying();
             // wait until it is the player's turn
             if (gameState == 2)
             {
@@ -1480,7 +1480,7 @@ void main() {
                     updateGameStateHTTP(lRetVal);
                     delay(100);
                 }
-                updateOLED();
+                updateOLEDPlaying();
             }
 
             signalReceived = 0;
