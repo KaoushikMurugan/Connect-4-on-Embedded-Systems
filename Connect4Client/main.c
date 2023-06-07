@@ -1208,43 +1208,6 @@ void drawText(char* text, int x, int y) {
     Outstr(text); // draw string
 }
 
-//void updateOLED() {
-//    fillScreen(BLACK);
-//
-//    if (gameState == 1 && winner != 0) {
-//        drawBoard(grid);
-//        drawSelection(selection_index, GREY);
-//        delay(200);
-//        fillScreen(BLACK);
-//
-//        if (winner == -1) {
-//            drawText("Tied!", 10, 20);
-//        }
-//        else if (winner == PLAYER) {
-//            drawText("You won!", 10, 20);
-//        }
-//        else {
-//            drawText("You lost!", 10, 20);
-//        }
-//    } else if (gameState == 1 && winner == 0) {
-//        fillScreen(BLACK);
-//        drawText("Press 5 to start", 10, 20);
-//    }
-//
-//    else {
-//        drawBoard(grid);
-//        if (currentTurn == PLAYER) {
-//            drawSelection(selection_index, WHITE);
-//        }
-//        else {
-//            drawSelection(selection_index, GREY);
-//        }
-//
-//    }
-//
-//}
-
-
 void updateOLED() {
     fillScreen(BLACK);
 
@@ -1263,7 +1226,11 @@ void updateOLED() {
         else {
             drawText("You lost!", 10, 20);
         }
+    } else if (gameState == 1 && winner == 0) {
+        fillScreen(BLACK);
+        drawText("Press 5 to start", 10, 20);
     }
+
     else {
         drawBoard(grid);
         if (currentTurn == PLAYER) {
@@ -1276,6 +1243,8 @@ void updateOLED() {
     }
 
 }
+
+
 
 
 
@@ -1301,7 +1270,6 @@ void main() {
 
     InitTerm();
     ClearTerm();
-    UART_PRINT("Hello world!\n\r");
 
     // *************** NETWORK INIT *************
 
@@ -1412,51 +1380,126 @@ void main() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // current selection
     selection_index = COLS/2;
 
     // signal ready
-    sendPlayerInputHTTP(lRetVal, -1);
+//    sendPlayerInputHTTP(lRetVal, -1);
 
-    fillScreen(BLACK);
-    drawText("Waiting for player...", 10, 20);
+
+    //********************************
+
+    // get the current gamestate from device shadow
+    updateGameStateHTTP(lRetVal);
+
+    int isWaitingForPlayer = 0;
+    int printedMessage = 0;
 
     while (1) {
-        // wait until player input was registered
-        do {
+
+        if (gameState == 1)
+        {
             updateGameStateHTTP(lRetVal);
             delay(100);
-        } while (playerInput != 0);
+            if (isWaitingForPlayer)
+            {
+                if(printedMessage == 0) {
+                    printedMessage = 1;
+                    fillScreen(BLACK);
+                    drawText("Waiting for player...", 10, 20);
+                }
+            } else {
+                updateOLED();
+                signalReceived = 0;
+                curBitString = 0;
+                bitsSoFar = 0;
+                int done = 0;
+                Report("Wow");
+                while (!done) {
+                    // check if received signal
+                    if (signalReceived) {
 
-        updateOLED();
+                        // check signal matches one of 12 valid buttons
+                        int i;
+                        for (i = 0; i < 12; i++) {
+                            // check if cached bit string match valid bit string
+                            if (bitStrings[i] == cachedBitString) {
+                                // bit string is valid
 
-        // wait until it is the player's turn
-        if (gameState != 1) {
-            while (currentTurn != PLAYER) {
-                updateGameStateHTTP(lRetVal);
-                delay(100);
+                                int button = i; // button is equivalent to current index
+
+
+                                // game is over so wait for player to input ready
+                                if (button == 5) {
+                                    Report("hmmmmm");
+                                    sendPlayerInputHTTP(lRetVal, -1);
+                                    isWaitingForPlayer = 1;
+                                    done = 1;
+                                }
+
+                            }
+                        }
+                        // flag signal processed
+                        signalReceived = 0;
+                    }
+                }
             }
         }
+        // If playing then do this
+        else if (gameState == 2)
+        {
+            isWaitingForPlayer = 0;
+            printedMessage = 0;
+            // wait until player input was registered
+            do {
+                updateGameStateHTTP(lRetVal);
+                delay(100);
+            } while (playerInput != 0);
 
-        updateOLED();
+            updateOLED();
+            // wait until it is the player's turn
+            if (gameState == 2)
+            {
+                while (currentTurn != PLAYER) {
+                    updateGameStateHTTP(lRetVal);
+                    delay(100);
+                }
+                updateOLED();
+            }
 
-        signalReceived = 0;
-        curBitString = 0;
-        bitsSoFar = 0;
-        int done = 0;
-        while (!done) {
-            // check if received signal
-            if (signalReceived) {
-                // check signal matches one of 12 valid buttons
-                int i;
-                for (i = 0; i < 12; i++) {
-                    // check if cached bit string match valid bit string
-                    if (bitStrings[i] == cachedBitString) {
-                        // bit string is valid
+            signalReceived = 0;
+            curBitString = 0;
+            bitsSoFar = 0;
+            int done = !(gameState == 2);
+            while (!done) {
+                // check if received signal
+                if (signalReceived) {
+                    // check signal matches one of 12 valid buttons
+                    int i;
+                    for (i = 0; i < 12; i++) {
+                        // check if cached bit string match valid bit string
+                        if (bitStrings[i] == cachedBitString) {
+                            // bit string is valid
+                            Report("asdf\n\r");
 
-                        int button = i; // button is equivalent to current index
-                        //game is not over so make a column selection
-                        if (gameState != 1) {
+                            int button = i; // button is equivalent to current index
+                            //game is not over so make a column selection
                             if (button == 4) {
                                 drawSelection(selection_index, BLACK);
                                 if (selection_index > 0) selection_index--;
@@ -1473,162 +1516,19 @@ void main() {
                                 done = 1;
                             }
                         }
-                        else {
-                            if (button == 5) {
-                                sendPlayerInputHTTP(lRetVal, -1);
-                                done = 1;
-                            }
-                        }
                     }
+                    // flag signal processed
+                    signalReceived = 0;
                 }
-                // flag signal processed
-                signalReceived = 0;
             }
+            updateGameStateHTTP(lRetVal);
+            delay(100);
         }
-
+        else {
+            updateGameStateHTTP(lRetVal);
+            delay(100);
+        }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//    // current selection
-//    selection_index = COLS/2;
-//
-//    // signal ready
-////    sendPlayerInputHTTP(lRetVal, -1);
-//
-//
-//    //********************************
-//
-//    // get the current gamestate from device shadow
-//    updateGameStateHTTP(lRetVal);
-//
-//    int isWaitingForPlayer = 0;
-//    int printedMessage = 0;
-//
-//    while (1) {
-//        if (gameState == 1)
-//        {
-//            updateGameStateHTTP(lRetVal);
-//            delay(100);
-//            if (isWaitingForPlayer)
-//            {
-//                if(printedMessage == 0) {
-//                    printedMessage = 1;
-//                    fillScreen(BLACK);
-//                    drawText("Waiting for player...", 10, 20);
-//                }
-//            } else {
-//                updateOLED();
-//                signalReceived = 0;
-//                curBitString = 0;
-//                bitsSoFar = 0;
-//                int done = 0;
-//                while (!done) {
-//                    // check if received signal
-//                    if (signalReceived) {
-//
-//                        // check signal matches one of 12 valid buttons
-//                        int i;
-//                        for (i = 0; i < 12; i++) {
-//                            // check if cached bit string match valid bit string
-//                            if (bitStrings[i] == cachedBitString) {
-//                                // bit string is valid
-//
-//                                int button = i; // button is equivalent to current index
-//
-//
-//                                // game is over so wait for player to input ready
-//                                if (button == 5) {
-//                                    sendPlayerInputHTTP(lRetVal, -1);
-//                                    isWaitingForPlayer = 1;
-//                                    done = 1;
-//                                }
-//
-//                            }
-//                        }
-//                        // flag signal processed
-//                        signalReceived = 0;
-//                    }
-//                }
-//            }
-//        }
-//        // If playing then do this
-//        else if (gameState == 2)
-//        {
-//            isWaitingForPlayer = 0;
-//            // wait until player input was registered
-//            do {
-//                updateGameStateHTTP(lRetVal);
-//                delay(100);
-//            } while (playerInput != 0);
-//
-//            updateOLED();
-//            // wait until it is the player's turn
-//            while (currentTurn != PLAYER) {
-//                updateGameStateHTTP(lRetVal);
-//                delay(100);
-//            }
-//
-//                updateOLED();
-//
-//            signalReceived = 0;
-//            curBitString = 0;
-//            bitsSoFar = 0;
-//            int done = 0;
-//            while (!done) {
-//                // check if received signal
-//                if (signalReceived) {
-//                    // check signal matches one of 12 valid buttons
-//                    int i;
-//                    for (i = 0; i < 12; i++) {
-//                        // check if cached bit string match valid bit string
-//                        if (bitStrings[i] == cachedBitString) {
-//                            // bit string is valid
-//                            Report("asdf\n\r");
-//
-//                            int button = i; // button is equivalent to current index
-//                            //game is not over so make a column selection
-//                            if (button == 4) {
-//                                drawSelection(selection_index, BLACK);
-//                                if (selection_index > 0) selection_index--;
-//                                drawSelection(selection_index, WHITE);
-//                            }
-//                            else if (button == 6) {
-//                                drawSelection(selection_index, BLACK);
-//                                if (selection_index < COLS-1) selection_index++;
-//                                drawSelection(selection_index, WHITE);
-//                            }
-//                            else if (button == 5) {
-//                                sendPlayerInputHTTP(lRetVal, selection_index+1);
-//                                drawSelection(selection_index, GREY);
-//                                done = 1;
-//                            }
-//                        }
-//                    }
-//                    // flag signal processed
-//                    signalReceived = 0;
-//                }
-//            }
-//        }
-//        else {
-//            updateGameStateHTTP(lRetVal);
-//            delay(100);
-//        }
-//    }
 
 
 }
