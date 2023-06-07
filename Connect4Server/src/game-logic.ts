@@ -118,7 +118,7 @@ class Connect4Game {
                 // Change turn to the next player
                 this.turn = (this.turn % 2) + 1;
                 // Check to see if there is a winner
-                this.winner = this.checkWinner();
+                this.winner = this.checkAndSetWinner();
                 return true;
             }
         }
@@ -129,23 +129,29 @@ class Connect4Game {
      * Checks to see if there is a winner
      * @returns 0 if the game is not over, 1 if player 1 won, 2 if player 2 won, -1 if the game is a tie
      */
-    private checkWinner(): number {
+    private checkAndSetWinner(): number {
         // ! There should never be a situation where there are two winners
         const hor = this.checkHotizontal();
         const ver = this.checkVertical();
         const main = this.checkMainDiagonal();
         const off = this.checkOffDiagonal();
         if (hor !== 0) {
+            this.winner = hor;
             return hor;
         } else if (ver !== 0) {
+            this.winner = ver;
             return ver;
         } else if (main !== 0) {
+            this.winner = main;
             return main;
         } else if (off !== 0) {
+            this.winner = off;
             return off;
         } else if (this.isBoardFull()) {
+            this.winner = -1;
             return -1;
         } else {
+            this.winner = 0;
             return 0;
         }
     }
@@ -250,6 +256,13 @@ class Connect4Game {
     public gameStateToJSON(playerInput: number): Connect4GameData {
         // Convert this.board into a string of numbers
         // For easy parsing in C
+
+        // Check for winner
+        let winner = this.checkAndSetWinner();
+        if (winner !== 0) {
+            this.gameState = GameState.GameOver;
+            console.log('Set state to game over');
+        }
 
         var boardString = '';
         for (let i = 0; i < 6; i++) {

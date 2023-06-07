@@ -127,7 +127,7 @@ async function main() {
             // Check if there is a winner
             if (game.getWinner() !== 0 && sentGameOver == false) {
                 console.log(`Player ${game.getWinner()} won!`);
-                game.setGameState(GameState.GameOver);
+                // game.setGameState(GameState.GameOver);
                 ready = 0;
                 updateAndGetShadows(0);
                 sentGameOver = true;
