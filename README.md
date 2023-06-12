@@ -1,4 +1,4 @@
-# Final Project for EEC 172 - Embedded Systems
+# Final Project for an Embedded Systems Course
 ### For Lab 6
 
 **Project by Ian Chuang and Kaoushik Murugan**
@@ -16,7 +16,7 @@ It is a node.js project using Amazon's IoT SDK to communicate with the boards ov
 
 ### `Device-2-certs` is the location where we store our certificates associated to the second CC3200 board
 
-You do not have to store them in those directories, however it may help with organization. All code that requires the certificates and keys are based on user specified relative paths (see [intructions on how to run Connect4Server](https://github.com/KaoushikMurugan/EEC172-Final-Project#how-to-run-connect4server))
+You do not have to store them in those directories, however it may help with organization. All code that requires the certificates and keys are based on user specified relative paths (see [intructions on how to run Connect4Server](https://github.com/KaoushikMurugan/Connect-4-on-Embedded-Systems#how-to-run-connect4server))
 
 # Instructions
 
@@ -37,7 +37,7 @@ You'll need the following certificates for each device that you want to connect:
 - Private Key
 
 **4. Create .shadowinfo.json for the devices you're using**
-The template is provided in [Connect4Server/Device.shadowinfo.template.json](https://github.com/KaoushikMurugan/EEC172-Final-Project/blob/main/Connect4Server/Device.shadowinfo.template.json)
+The template is provided in [Connect4Server/Device.shadowinfo.template.json](https://github.com/KaoushikMurugan/Connect-4-on-Embedded-Systems/blob/main/Connect4Server/Device.shadowinfo.template.json)
 
 - The paths to the certificates and keys should be relative to the .shadowinfo.json's file location.
 - `thing_name` is the name of the aws iot thing you want to connect to
@@ -59,7 +59,7 @@ node -v
 
 ## AWS Setup
 
-When creating the policies for the device(s), use template provided in [PolicyPremissions.json](https://github.com/KaoushikMurugan/EEC172-Final-Project/blob/main/PolicyPremissions.json).
+When creating the policies for the device(s), use template provided in [PolicyPremissions.json](https://github.com/KaoushikMurugan/Connect-4-on-Embedded-Systems/blob/main/PolicyPremissions.json).
 Replace:
 - <region> with the region you are using (e.g. `us-east-1`)
 - <aws_account_id> with your aws account id
